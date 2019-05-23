@@ -4,14 +4,9 @@ import requests
 import string
 import time
 import json
-from dotenv import load_dotenv
-from caesarCipher import decrypt
 
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, '.env'))
-
-token = os.environ.get("TOKEN")
+token = os.environ["TOKEN"]
 url_data = "https://api.codenation.dev/v1/challenge/dev-ps/generate-data?token=" + token
 url_solution = "https://api.codenation.dev/v1/challenge/dev-ps/submit-solution?token=" + token
 
@@ -25,25 +20,23 @@ def decifra(texto, n_casas):
         elif t in str(digits):
             new_t = t
         else:
-            if (ord(t) + n_casas) > 122:
-                new_t = chr(97 + ((ord(t) + n_casas) - 123))
+            if (ord(t) - n_casas) < 97:
+                new_t = chr(( ord(t) - n_casas) + 26)
             else:
-                new_t = chr(ord(t) + n_casas)
+                new_t = chr(ord(t) - n_casas)
         frase = frase + new_t
     print(frase)
     return frase.lower()
 
 
 def resumo(texto):
-    print(hashlib.sha1(texto.encode('utf-8')).hexdigest())
-    print(hashlib.sha1(texto.encode('ascii')).hexdigest())
     return hashlib.sha1(texto.encode('utf-8')).hexdigest()
 
 
 def getvalues():
     dados = requests.get(url_data)
     dados = dados.json()
-    decoded = decrypt(dados['cifrado'], dados['numero_casas'])
+    decoded = decifra(dados['cifrado'], dados['numero_casas'])
     dados['decifrado'] = decoded
     dados['resumo_criptografico'] = resumo(decoded)
 
@@ -51,7 +44,7 @@ def getvalues():
         json.dump(dados, f)
 
     time.sleep(5)
-    postvalues()
+    # postvalues()
 
 
 def postvalues():
